@@ -10,7 +10,7 @@ const { okRes, errRes } = require("../utils/util.services");
 async function get(req, res) {
   try {
     const data = await db.query(
-      "select courses.Cid,courses.name,courses.field from courses where EXISTS ( SELECT courseId from question where question.courseId = courses.Cid AND question.active=1)"
+      "select courses.Cid,courses.name,courses.field,courses.status from courses where EXISTS ( SELECT courseId from question where question.courseId = courses.Cid AND question.active=1)"
     );
     // console.log(data);
     if (data) {
@@ -21,6 +21,24 @@ async function get(req, res) {
   }
 }
 
+/**
+ *
+ * @param {*} page
+ * @returns
+ */
+async function getAll(req, res) {
+  try {
+    const data = await db.query(
+      "select * from courses"
+    );
+    // console.log(data);
+    if (data) {
+      return okRes(res, { data });
+    }
+  } catch {
+    return errRes(res, "There is no data!!!");
+  }
+}
 /**
  *
  * @param {*} page
@@ -141,8 +159,6 @@ async function update(req, res) {
 async function add(req, res) {
   //  get body
   const body = req.body;
-  const lectureEmail = body.lecture;
-  // console.log(Validate.course());
   // validate body
   let notValid = validate(body, {
     name: { presence: true, type: "string" },
@@ -152,13 +168,11 @@ async function add(req, res) {
   var today = new Date();
   var date =
     today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-  // console.log(typeof "he");
-  const sql = `SELECT * FROM lecture WHERE email='${lectureEmail}'`;
+
   if (notValid) return errRes(res, "The data you send is not valid");
-  let lecture = await db.query(sql);
   try {
     let course = await db.query(
-      `insert into courses(name,field,date_started,lectureId,status) values ('${body.name}','${body.field}','${date}','${lecture[0].id}','${body.status}')`
+      `insert into courses(name,field,date_started,status) values ('${body.name}','${body.field}','${date}','${body.status}')`
     );
     return okRes(res, course);
   } catch {
@@ -188,4 +202,5 @@ module.exports = {
   getAllWithStudent,
   getForLacture,
   getOneAndSet,
+  getAll,
 };

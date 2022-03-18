@@ -17,7 +17,6 @@ async function register(req, res) {
   // validate body
   let must = true;
   let notValid = validate(body, {
-    name: { presence: must, type: "string" },
     email: { presence: must, type: "string", email: must },
     password: { presence: must, type: "string" },
   });
@@ -34,15 +33,8 @@ async function register(req, res) {
   else {
     // console.log(body);
     await db.query(
-      `insert into lecture(name,email,password) values ('${body.name}','${body.email}','${body.password}')`
+      `insert into admin(email,password) values ('${body.email}','${body.password}')`
     );
-    let ids = await db.query(`SELECT MAX(id) AS last_id FROM lecture`);
-    // console.log(ids[0]);
-    for (i = 0; i < body.courseId.length; i++) {
-      await db.query(
-        `insert into courses_lecture(courseId,lectureId) values ('${body.courseId[i]}',${ids[0].last_id})`
-      );
-    }
     // console.log(newStudent);
   } //Done
   // send the token
@@ -67,7 +59,7 @@ async function login(req, res) {
   });
   if (notValid) return errRes(res, "The data you send is not valid");
   // take the user from db
-  user = await db.query(`select * from lecture where email='${body.email}'`);
+  user = await db.query(`select * from admin where email='${body.email}'`);
   if (!user) return errRes(res, "The user not found");
   // console.log(user/);
   // validate the password
@@ -76,27 +68,14 @@ async function login(req, res) {
   if (!check) return errRes(res, "Not valide credentials");
   // send the token to the front-end
   let token = jwt.sign({ email: user[0].email }, "3o33w34mmrm3or3o");
-  user = user[0].name;
+  user = user[0].email;
   // console.log(token);
   return okRes(res, { token, user });
   // } catch {
   //   return errRes(err, "Error");
   // }
 }
-/**
- *
- * @param {*}
- */
-async function get(req, res) {
-  const data = await db.query("select * from lecture");
-  // console.log(data);
-  if (data.length != 0) {
-    return okRes(res, { data });
-  }
-  return errRes(res, "There is no data!!!");
-}
 module.exports = {
   register,
   login,
-  get,
 };

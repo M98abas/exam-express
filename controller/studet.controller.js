@@ -9,9 +9,12 @@ const jwt = require("jsonwebtoken");
  * @returns
  */
 async function get(req, res) {
-  const data = await db.query("select * from istractors");
-  if (!data) {
-    return okRes(res, data);
+  const data = await db.query(
+    "select istractors.id,istractors.name,istractor_courses.score,istractors.created_at,istractors.email,courses.name as Cname from istractor_courses inner join istractors on istractors.id = istractor_courses.istractorId inner JOIN courses on courses.Cid = istractor_courses.coursesId"
+  );
+  // console.log(data);
+  if (data.length != 0) {
+    return okRes(res, { data });
   }
   return errRes(res, "There is no data!!!");
 }
